@@ -2,19 +2,16 @@ package com.nandantimsina.bootdoctor;
 
 import org.springframework.boot.diagnostics.AbstractFailureAnalyzer;
 import org.springframework.boot.diagnostics.FailureAnalysis;
-import org.springframework.context.EnvironmentAware;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
-public class BootDoctorFailureAnalyzer extends AbstractFailureAnalyzer<Throwable>
-        implements EnvironmentAware {
+public class BootDoctorFailureAnalyzer extends AbstractFailureAnalyzer<Throwable> {
 
-    private Environment environment;
+    private final Environment environment;
 
-    @Override
-    public void setEnvironment(Environment environment) {
+    public BootDoctorFailureAnalyzer(Environment environment) {
         this.environment = environment;
     }
 
@@ -24,9 +21,10 @@ public class BootDoctorFailureAnalyzer extends AbstractFailureAnalyzer<Throwable
             if (!isEnabled()) {
                 return null;
             }
-            String summary = cause.getClass().getName() + ": " + cause.getMessage();
+            Throwable root = rootCause(cause);
+            String summary = root.getClass().getName() + ": " + root.getMessage();
             ConsolePrinter.print("BootDoctor diagnosis (placeholder)",
-                    "Failure seen: " + summary);
+                    "Root cause: " + summary);
         } catch (Throwable ignored) {
             // never let our own problem make the failing app fail worse
         }
@@ -34,9 +32,14 @@ public class BootDoctorFailureAnalyzer extends AbstractFailureAnalyzer<Throwable
     }
 
     private boolean isEnabled() {
-        if (environment == null) {
-            return true;
-        }
         return environment.getProperty("bootdoctor.enabled", Boolean.class, true);
+    }
+
+    private static Throwable rootCause(Throwable t) {
+        Throwable current = t;
+        while (current.getCause() != null && current.getCause() != current) {
+            current = current.getCause();
+        }
+        return current;
     }
 }
