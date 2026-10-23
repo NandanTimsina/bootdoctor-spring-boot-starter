@@ -45,12 +45,10 @@ public final class ContextCollector {
             }
             sb.append(i + 1).append(". ")
                     .append(t.getClass().getName()).append(": ")
-                    .append(shorten(t.getMessage(), limit));
-            if (isRoot) {
-                sb.append("   <-- ROOT CAUSE");
-            }
-            sb.append('\n');
+                    .append(shorten(t.getMessage(), limit))
+                    .append('\n');
         }
+        sb.append("(The last item in the chain is the root cause.)").append('\n');
 
         sb.append('\n').append("Top stack frames of the root cause:").append('\n');
         StackTraceElement[] frames = root.getStackTrace();
