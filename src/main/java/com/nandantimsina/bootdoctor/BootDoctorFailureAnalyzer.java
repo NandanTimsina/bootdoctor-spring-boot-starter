@@ -6,6 +6,8 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 
+import java.util.List;
+
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class BootDoctorFailureAnalyzer extends AbstractFailureAnalyzer<Throwable> {
 
@@ -22,7 +24,10 @@ public class BootDoctorFailureAnalyzer extends AbstractFailureAnalyzer<Throwable
                 return null;
             }
             String context = ContextCollector.collect(rootFailure);
-            ConsolePrinter.print("BootDoctor diagnosis (placeholder)", context);
+            List<String> secrets = settings.hasApiKey()
+                    ? List.of(settings.getApiKey()) : List.of();
+            String safe = SecretMasker.mask(context, secrets);
+            ConsolePrinter.print("BootDoctor diagnosis (placeholder)", safe);
         } catch (Throwable ignored) {
             // never let our own problem make the failing app fail worse
         }
