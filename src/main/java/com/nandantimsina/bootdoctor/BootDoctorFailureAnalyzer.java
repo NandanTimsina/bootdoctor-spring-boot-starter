@@ -21,22 +21,11 @@ public class BootDoctorFailureAnalyzer extends AbstractFailureAnalyzer<Throwable
             if (!settings.isEnabled()) {
                 return null;
             }
-            Throwable root = rootCause(cause);
-            String summary = root.getClass().getName() + ": " + root.getMessage();
-            ConsolePrinter.print("BootDoctor diagnosis (placeholder)",
-                    "Root cause: " + summary + System.lineSeparator()
-                            + "Settings: " + settings);
+            String context = ContextCollector.collect(rootFailure);
+            ConsolePrinter.print("BootDoctor diagnosis (placeholder)", context);
         } catch (Throwable ignored) {
             // never let our own problem make the failing app fail worse
         }
         return null;
-    }
-
-    private static Throwable rootCause(Throwable t) {
-        Throwable current = t;
-        while (current.getCause() != null && current.getCause() != current) {
-            current = current.getCause();
-        }
-        return current;
     }
 }
